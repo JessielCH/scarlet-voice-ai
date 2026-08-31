@@ -1,25 +1,25 @@
-# Código de Conducta
+# Code of Conduct
 
-Como contribuyentes y mantenedores de este proyecto, nos comprometemos a respetar a todas las personas que contribuyen a través de reportes de issues, publicación de características, o cualquier otra actividad.
+As contributors and maintainers of this project, we pledge to respect all people who contribute through reporting issues, posting feature requests, updating documentation, submitting pull requests or patches, and other activities.
 
-## Nuestro Compromiso
+## Our Pledge
 
-Nos comprometemos a hacer que la participación en nuestro proyecto y nuestra comunidad sea una experiencia libre de acoso para todos.
+We are committed to making participation in our project and our community a harassment-free experience for everyone.
 
-## Nuestros Estándares
+## Our Standards
 
-Ejemplos de comportamiento que contribuye a crear un entorno positivo incluyen:
+Examples of behavior that contributes to creating a positive environment include:
 
-* Uso de lenguaje amable e inclusivo.
-* Respeto a diferentes puntos de vista y experiencias.
-* Aceptación de críticas constructivas con gracia.
-* Enfoque en lo que es mejor para la comunidad.
+* Using welcoming and inclusive language.
+* Being respectful of differing viewpoints and experiences.
+* Gracefully accepting constructive criticism.
+* Focusing on what is best for the community.
 
-Ejemplos de comportamiento inaceptable incluyen:
+Examples of unacceptable behavior by participants include:
 
-* El uso de lenguaje o imágenes sexualizadas.
-* Comentarios insultantes o despectivos, y ataques personales o políticos.
-* Acoso público o privado.
-* Publicar información privada de otras personas, como direcciones físicas o electrónicas, sin permiso explícito.
+* The use of sexualized language or imagery.
+* Trolling, insulting/derogatory comments, and personal or political attacks.
+* Public or private harassment.
+* Publishing others' private information, such as a physical or electronic address, without explicit permission.
 
-Las instancias de comportamiento abusivo, acosador o de otro modo inaceptable pueden ser reportadas contactando al equipo del proyecto.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team.

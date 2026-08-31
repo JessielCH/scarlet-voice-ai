@@ -1,23 +1,24 @@
-# Guía de Contribución
+# Contributing Guidelines
 
-¡Gracias por interesarte en contribuir a **Scarlet Voice AI**!
+Thank you for your interest in contributing to **Scarlet Voice AI**!
 
-## Cómo empezar
+## Getting Started
 
-1. Haz un fork del repositorio.
-2. Crea una rama para tu característica o corrección de error (`git checkout -b feature/nueva-caracteristica`).
-3. Realiza tus cambios y haz commit (`git commit -m 'Añadir nueva característica'`).
-4. Haz push a tu rama (`git push origin feature/nueva-caracteristica`).
-5. Abre un Pull Request describiendo detalladamente tus cambios.
+1. Fork the repository.
+2. Create a branch for your feature or bug fix (`git checkout -b feature/new-feature`).
+3. Commit your changes (`git commit -m 'Add new feature'`).
+4. Push to your branch (`git push origin feature/new-feature`).
+5. Open a Pull Request detailing your changes.
 
-## Reporte de Errores
+## Bug Reports
 
-Si encuentras un error, por favor abre un issue con la siguiente información:
-- Descripción clara del error.
-- Pasos para reproducirlo.
-- Comportamiento esperado vs. comportamiento actual.
-- Tu entorno (Sistema Operativo, versión de Python, etc.).
+If you find a bug, please open an issue with the following information:
+- A clear description of the bug.
+- Steps to reproduce it.
+- Expected behavior vs. actual behavior.
+- Your environment (OS, Python version, etc.).
 
-## Estándares de Código
-- Mantén el código limpio, bien comentado y sigue las convenciones estándar del lenguaje (PEP 8 para Python).
-- Si añades nuevas funciones, procura documentarlas.
+## Code Standards
+- Keep the code clean, well-commented, and follow the standard language conventions (PEP 8 for Python).
+- If you add new features, make sure to document them.
+- All code, comments, and documentation MUST be in English.

@@ -1,27 +1,27 @@
 # Scarlet Voice AI
 
-Scarlet es un asistente de Inteligencia Artificial por voz diseñado para ayudarte a gestionar tu día a día, organizar tu agenda, recordatorios y ayudarte a potenciar tus metas (ahorrar dinero, aprender inglés, buscar trabajo en el mundo del desarrollo, etc.). 
-Inspirado en J.A.R.V.I.S., Scarlet interactúa a través de dispositivos Bluetooth (parlante/audífonos) y se conecta directamente con tu PC.
+Scarlet is an Artificial Intelligence voice assistant designed to help you manage your daily life, organize your schedule, set reminders, and assist you in achieving your goals (saving money, learning English, finding a job in software development, etc.).
+Inspired by J.A.R.V.I.S., Scarlet interacts with you via Bluetooth devices (speakers/headphones) and connects directly to your PC.
 
-## 🚀 Características Principales
+## 🚀 Key Features
 
-*   **Interacción por Voz:** Comunícate con Scarlet de forma natural mediante tu micrófono/audífonos Bluetooth.
-*   **Gestión de Agenda:** Scarlet organiza y te recuerda tus compromisos y tareas diarias.
-*   **Compañera Educativa:** Te asiste en tu aprendizaje de inglés y en tu último semestre de Ingeniería en Sistemas.
-*   **Orientación Profesional:** Ayuda en la búsqueda de trabajo y simulaciones de entrevistas.
-*   **Modularidad de IA:** Arquitectura diseñada para soportar tanto modelos de IA Locales como APIs externas en la nube.
+*   **Voice Interaction:** Communicate with Scarlet naturally through your Bluetooth microphone/headphones.
+*   **Schedule Management:** Scarlet organizes and reminds you of your daily tasks and appointments.
+*   **Educational Companion:** Assists you in learning English and supports you during your Systems Engineering studies.
+*   **Career Guidance:** Helps with job hunting and conducts simulated job interviews.
+*   **AI Modularity:** Designed with an architecture that supports both Local AI models and Cloud-based APIs.
 
-## 🛠️ Tecnologías
+## 🛠️ Technologies
 
-*Proyecto en fase inicial.* La base se diseñará considerando:
-- **Lenguaje:** Python (recomendado para IA y procesamiento de audio).
-- **Procesamiento de Voz:** Bibliotecas de Text-to-Speech (TTS) y Speech-to-Text (STT).
-- **Cerebro (LLM):** Integración inicial con APIs de LLM y/u opciones locales.
+*Project in early stages.* The foundation will be designed considering:
+- **Language:** Python (recommended for AI and audio processing).
+- **Voice Processing:** Text-to-Speech (TTS) and Speech-to-Text (STT) libraries.
+- **Brain (LLM):** Initial integration with LLM APIs, keeping the door open for local options.
 
-## 🤝 Contribución
+## 🤝 Contributing
 
-Si deseas contribuir, por favor lee nuestro [CONTRIBUTING.md](CONTRIBUTING.md) y asegúrate de seguir el [Código de Conducta](CODE_OF_CONDUCT.md).
+If you wish to contribute, please read our [CONTRIBUTING.md](CONTRIBUTING.md) and ensure you follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## 📄 Licencia
+## 📄 License
 
-Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

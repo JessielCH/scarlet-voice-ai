@@ -3,6 +3,8 @@ import io
 import wave
 import time
 import asyncio
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import speech_recognition as sr
 from dotenv import load_dotenv

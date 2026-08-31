@@ -76,7 +76,7 @@ def generate_response(prompt):
                     "content": prompt,
                 }
             ],
-            model="llama-3.1-8b-instant",
+            model="groq/compound",
             temperature=0.7,
             max_tokens=256,
         )

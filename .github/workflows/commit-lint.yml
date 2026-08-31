@@ -1,0 +1,19 @@
+name: Commit Linter
+
+on:
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
+  push:
+    branches:
+      - main
+
+jobs:
+  lint-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Commit Messages (Conventional Commits)
+        uses: wagoid/commitlint-github-action@v5

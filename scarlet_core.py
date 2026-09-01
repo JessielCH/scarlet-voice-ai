@@ -109,9 +109,7 @@ def play_audio(filename):
         print(f"❌ Audio playback error: {e}")
 
 async def main():
-    print("=======================================")
-    print("🚀 Scarlet Voice AI - Core Engine Test")
-    print("=======================================")
+    print("▶️ Recording interaction...")
     
     audio_file = record_audio()
     if audio_file:

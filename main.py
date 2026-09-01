@@ -1,78 +1,63 @@
 import os
-import struct
+import json
 import pyaudio
-import pvporcupine
 import asyncio
+from vosk import Model, KaldiRecognizer
 from dotenv import load_dotenv
 
-# Import our core logic
 import scarlet_core
 
-def setup_porcupine():
-    load_dotenv()
-    access_key = os.getenv("PICOVOICE_API_KEY")
-    
-    if not access_key or access_key == "your_picovoice_api_key_here":
-        print("❌ ERROR: Please set your PICOVOICE_API_KEY in the .env file.")
-        print("Get a free key at https://console.picovoice.ai")
-        exit(1)
-        
-    try:
-        # We use "jarvis" as the default built-in wake word for now.
-        # You can create a custom "Scarlet" model at console.picovoice.ai 
-        # and load it here by replacing keyword_paths with your custom .ppn file.
-        porcupine = pvporcupine.create(
-            access_key=access_key,
-            keywords=["jarvis"] 
-        )
-        return porcupine
-    except Exception as e:
-        print(f"❌ Failed to initialize Porcupine: {e}")
-        exit(1)
-
 async def run_wake_word_loop():
-    porcupine = setup_porcupine()
+    print("⏳ Initializing offline Vosk model... (This takes a few seconds)")
+    # Loads the small English model we just downloaded automatically
+    model = Model(lang="en-us")
+    recognizer = KaldiRecognizer(model, 16000)
     
     pa = pyaudio.PyAudio()
     audio_stream = pa.open(
-        rate=porcupine.sample_rate,
-        channels=1,
         format=pyaudio.paInt16,
+        channels=1,
+        rate=16000,
         input=True,
-        frames_per_buffer=porcupine.frame_length
+        frames_per_buffer=4000
     )
     
     print("\n" + "="*50)
     print("🎙️  SCARLET WAKE WORD ENGINE STARTED")
-    print("👂 Listening continuously in background (0% CPU)...")
-    print("🗣️  Say 'Jarvis' to wake up Scarlet.")
+    print("👂 Listening continuously in background (No API Key needed)...")
+    print("🗣️  Say 'Scarlet' to wake up the assistant.")
     print("="*50 + "\n")
+    
+    audio_stream.start_stream()
     
     try:
         while True:
-            pcm = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
-            pcm = struct.unpack_from("h" * porcupine.frame_length, pcm)
+            data = audio_stream.read(4000, exception_on_overflow=False)
             
-            keyword_index = porcupine.process(pcm)
-            
-            if keyword_index >= 0:
-                print("\n🔔 Wake word detected! Waking up Scarlet...")
+            # When AcceptWaveform returns True, a sentence was fully spoken
+            if recognizer.AcceptWaveform(data):
+                result = json.loads(recognizer.Result())
+                text = result.get("text", "").lower()
                 
-                # Stop listening for wake word temporarily
-                audio_stream.stop_stream()
-                
-                # Run Scarlet interaction
-                await scarlet_core.main()
-                
-                print("\n👂 Resuming background listening... Say 'Jarvis' again.")
-                audio_stream.start_stream()
-                
+                if "scarlet" in text:
+                    print(f"\n🔔 Wake word detected! You said: '{text}'")
+                    
+                    # Pause background listening
+                    audio_stream.stop_stream()
+                    
+                    # Hand over control to Scarlet's main logic
+                    await scarlet_core.main()
+                    
+                    # After Scarlet finishes, reset the recognizer and resume
+                    recognizer.Reset()
+                    print("\n👂 Resuming background listening... Say 'Scarlet' again.")
+                    audio_stream.start_stream()
+                    
     except KeyboardInterrupt:
         print("\nStopping Scarlet...")
     finally:
         audio_stream.close()
         pa.terminate()
-        porcupine.delete()
 
 if __name__ == "__main__":
     asyncio.run(run_wake_word_loop())

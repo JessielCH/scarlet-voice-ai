@@ -32,30 +32,33 @@ pygame.mixer.init()
 SYSTEM_PROMPT = """You are Scarlet, a highly intelligent voice AI assistant created by Jessiel.
 You communicate in Spanish by default, concisely and clearly (your response will be read aloud).
 
-IMPORTANT: The user speaks to you through a voice microphone. Whisper (the transcription AI) sometimes
-mistranscribes words, especially short Spanish commands. Be very lenient with spelling/typos.
-For example: "pong", "pond", "pone", "pons" all likely mean "pon" (play/put on).
-"ponme", "reproduced", "reproduce", "escuchar", "quiero oir", "coloca" also mean the user wants to play something.
+CRITICAL: The user speaks through a voice microphone. Transcription may have errors.
+Be very lenient with spelling/typos. "pong", "pond", "pons" all mean "pon" (play).
 
-You can control the user's computer browser. When the user asks to play music,
-open YouTube, search for a video, or any similar browser action, respond ONLY with a
-valid JSON object in this exact format (no extra text, no markdown, no code blocks):
-{"action": "youtube_search", "query": "<search terms>", "message": "<short confirmation in Spanish under 12 words>"}
+You MUST respond with JSON whenever the user wants to:
+- Play music or audio (words like: pon, pong, pond, pon me, reproduce, escuchar, oír, quiero escuchar, quiero oír, música de, canción de, coloca, dale play)
+- Open YouTube or search for a video
+- Search on Google
+- Open a website
 
-For general Google searches:
-{"action": "google_search", "query": "<search terms>", "message": "<short confirmation in Spanish under 12 words>"}
+For music/YouTube use ONLY this exact JSON format (no markdown, no extra text):
+{"action": "youtube_search", "query": "<what to search>", "message": "<confirmation in Spanish, max 10 words>"}
 
-For opening a specific URL:
-{"action": "open_url", "url": "<full_url>", "message": "<short confirmation in Spanish under 12 words>"}
+For Google search:
+{"action": "google_search", "query": "<search terms>", "message": "<confirmation in Spanish, max 10 words>"}
 
-Examples:
-- User: "pon reggaeton" -> {"action": "youtube_search", "query": "reggaeton", "message": "Reproduciendo reggaeton en YouTube."}
-- User: "pong Bad Bunny" -> {"action": "youtube_search", "query": "Bad Bunny", "message": "Poniendo Bad Bunny en YouTube."}
-- User: "pond musica de Shakira" -> {"action": "youtube_search", "query": "Shakira", "message": "Poniendo Shakira en YouTube."}
-- User: "quiero escuchar salsa" -> {"action": "youtube_search", "query": "salsa", "message": "Reproduciendo salsa en YouTube."}
-- User: "busca el clima de hoy" -> {"action": "google_search", "query": "clima hoy", "message": "Buscando el clima de hoy."}
+For opening a URL:
+{"action": "open_url", "url": "<full url>", "message": "<confirmation in Spanish, max 10 words>"}
 
-For anything else, respond in plain conversational Spanish (NO JSON).
+Examples (ALWAYS return JSON for these):
+- "pon reggaeton" -> {"action": "youtube_search", "query": "reggaeton", "message": "Reproduciendo reggaeton."}
+- "música de Bad Bunny" -> {"action": "youtube_search", "query": "Bad Bunny", "message": "Poniendo Bad Bunny en YouTube."}
+- "pong Bad Bunny" -> {"action": "youtube_search", "query": "Bad Bunny", "message": "Poniendo Bad Bunny."}
+- "quiero escuchar salsa" -> {"action": "youtube_search", "query": "salsa", "message": "Reproduciendo salsa."}
+- "pond musica de Shakira" -> {"action": "youtube_search", "query": "Shakira", "message": "Poniendo Shakira."}
+- "busca el clima" -> {"action": "google_search", "query": "clima hoy", "message": "Buscando el clima."}
+
+For anything else that is NOT a browser/media action, respond in plain Spanish (NO JSON).
 Keep plain text responses under 40 words."""
 
 # ---------------------------------------------------------------------------
@@ -91,8 +94,44 @@ def clean_transcript(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Audio recording
+# Keyword-based intent fallback (catches what the LLM misses)
 # ---------------------------------------------------------------------------
+# Trigger words that indicate the user wants to play something on YouTube
+MUSIC_TRIGGERS = [
+    r'\bpon\b', r'\bpong\b', r'\bpond\b', r'\bpons\b',
+    r'\breproduce\b', r'\breprod[uo]cir\b',
+    r'\bescuchar\b', r'\boír\b', r'\boir\b',
+    r'\bquiero (escuchar|oir|oír|ver)\b',
+    r'\bmúsica de\b', r'\bmusica de\b',
+    r'\bcanción de\b', r'\bcancion de\b',
+    r'\bdale play\b', r'\bcoloca\b',
+]
+
+def keyword_intent_fallback(text: str):
+    """
+    If the LLM didn't return a JSON action but the text looks like a
+    play/search command, build the action directly from keywords.
+    Returns an action dict or None.
+    """
+    text_lower = text.lower()
+    for pattern in MUSIC_TRIGGERS:
+        if re.search(pattern, text_lower):
+            # Strip trigger words to extract the actual query
+            query = re.sub(
+                r'\b(pon|pong|pond|pons|reproduce|escuchar|oír|oir|música de|musica de|'
+                r'canción de|cancion de|dale play|coloca|quiero|ver|ponme|me|la|el|una|un)\b',
+                '', text_lower, flags=re.IGNORECASE
+            ).strip()
+            query = re.sub(r'\s+', ' ', query).strip()
+            if query:
+                print(f"🔀 Fallback intent detected: youtube_search -> '{query}'")
+                return {
+                    "action": "youtube_search",
+                    "query": query,
+                    "message": f"Reproduciendo {query} en YouTube."
+                }
+    return None
+
 def record_audio(filename="temp_audio.wav"):
     """Records audio from the microphone and saves it to a file."""
     recognizer = sr.Recognizer()
@@ -165,10 +204,19 @@ def generate_response(prompt):
         except (json.JSONDecodeError, AttributeError):
             pass
 
+        # LLM returned plain text — try keyword fallback to catch missed intents
+        fallback_action = keyword_intent_fallback(prompt)
+        if fallback_action:
+            return fallback_action["message"], fallback_action
+
         return raw, None
 
     except Exception as e:
         print(f"❌ LLM error: {e}")
+        # Even on LLM error, try keyword fallback
+        fallback_action = keyword_intent_fallback(prompt)
+        if fallback_action:
+            return fallback_action["message"], fallback_action
         return "Hubo un error al conectar con mi cerebro.", None
 
 

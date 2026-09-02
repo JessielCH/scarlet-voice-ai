@@ -144,10 +144,12 @@ def get_first_youtube_url(query: str) -> str:
         results = search.result()
         videos = results.get("result", [])
         if videos:
-            video_id = videos[0].get("id")
+            link = videos[0].get("link", "")
             title = videos[0].get("title", query)
             print(f"🎬 First result: '{title}'")
-            return f"https://www.youtube.com/watch?v={video_id}"
+            print(f"🔗 URL: {link}")
+            if link:
+                return link
     except Exception as e:
         print(f"⚠️  YouTube search error: {e}")
     # Fallback to search results page

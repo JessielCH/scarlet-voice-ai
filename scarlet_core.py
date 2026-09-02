@@ -32,6 +32,11 @@ pygame.mixer.init()
 SYSTEM_PROMPT = """You are Scarlet, a highly intelligent voice AI assistant created by Jessiel.
 You communicate in Spanish by default, concisely and clearly (your response will be read aloud).
 
+IMPORTANT: The user speaks to you through a voice microphone. Whisper (the transcription AI) sometimes
+mistranscribes words, especially short Spanish commands. Be very lenient with spelling/typos.
+For example: "pong", "pond", "pone", "pons" all likely mean "pon" (play/put on).
+"ponme", "reproduced", "reproduce", "escuchar", "quiero oir", "coloca" also mean the user wants to play something.
+
 You can control the user's computer browser. When the user asks to play music,
 open YouTube, search for a video, or any similar browser action, respond ONLY with a
 valid JSON object in this exact format (no extra text, no markdown, no code blocks):
@@ -45,11 +50,44 @@ For opening a specific URL:
 
 Examples:
 - User: "pon reggaeton" -> {"action": "youtube_search", "query": "reggaeton", "message": "Reproduciendo reggaeton en YouTube."}
-- User: "pon Bad Bunny" -> {"action": "youtube_search", "query": "Bad Bunny", "message": "Poniendo Bad Bunny en YouTube."}
+- User: "pong Bad Bunny" -> {"action": "youtube_search", "query": "Bad Bunny", "message": "Poniendo Bad Bunny en YouTube."}
+- User: "pond musica de Shakira" -> {"action": "youtube_search", "query": "Shakira", "message": "Poniendo Shakira en YouTube."}
+- User: "quiero escuchar salsa" -> {"action": "youtube_search", "query": "salsa", "message": "Reproduciendo salsa en YouTube."}
 - User: "busca el clima de hoy" -> {"action": "google_search", "query": "clima hoy", "message": "Buscando el clima de hoy."}
 
 For anything else, respond in plain conversational Spanish (NO JSON).
 Keep plain text responses under 40 words."""
+
+# ---------------------------------------------------------------------------
+# Transcript cleanup: fix common Whisper Spanish mistranscriptions
+# ---------------------------------------------------------------------------
+WHISPER_FIXES = [
+    # Verb "pon" (play/put) often gets extra letters
+    (r'\bpongs?\b', 'pon'),
+    (r'\bponds?\b', 'pon'),
+    (r'\bponer\b', 'pon'),
+    (r'\bpones\b', 'pon'),
+    # "abre" (open)
+    (r'\bhabres?\b', 'abre'),
+    (r'\babre\b', 'abre'),
+    # "busca" (search)
+    (r'\bbuscar\b', 'busca'),
+    # "reproduce" variants
+    (r'\breproduced?\b', 'reproduce'),
+]
+
+import re
+
+def clean_transcript(text: str) -> str:
+    """Fixes common Whisper mistranscriptions in Spanish voice commands."""
+    if not text:
+        return text
+    cleaned = text
+    for pattern, replacement in WHISPER_FIXES:
+        cleaned = re.sub(pattern, replacement, cleaned, flags=re.IGNORECASE)
+    if cleaned != text:
+        print(f"🔧 Transcript corrected: '{text}' -> '{cleaned}'")
+    return cleaned
 
 
 # ---------------------------------------------------------------------------
@@ -243,6 +281,8 @@ async def main():
         print(f"🗣️  You said: {user_text}")
 
         if user_text:
+            # Fix common Whisper mis-transcriptions before sending to LLM
+            user_text = clean_transcript(user_text)
             print("🧠 Thinking...")
             response_text, action = generate_response(user_text)
             print(f"🤖 Scarlet: {response_text}")

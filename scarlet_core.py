@@ -355,5 +355,31 @@ async def main():
                 pass
 
 
+async def process_command(user_text: str):
+    """
+    Runs the respond-and-speak pipeline on already-transcribed text.
+    Called by main.py when the wake word listener captures the command
+    phrase directly via Google STT (skipping Whisper to save time).
+    """
+    tts_file = None
+    user_text = clean_transcript(user_text)
+    print("🧠 Thinking...")
+    response_text, action = generate_response(user_text)
+    print(f"🤖 Scarlet: {response_text}")
+
+    if action:
+        execute_action(action)
+
+    print("🔊 Generating Speech...")
+    tts_file = await text_to_speech(response_text)
+    if tts_file:
+        print("▶️  Playing audio...")
+        play_audio(tts_file)
+        try:
+            os.remove(tts_file)
+        except Exception:
+            pass
+
+
 if __name__ == "__main__":
     asyncio.run(main())

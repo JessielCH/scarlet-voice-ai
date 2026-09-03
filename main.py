@@ -6,6 +6,7 @@ import pygetwindow as gw
 import speech_recognition as sr
 
 import scarlet_core
+import audio_control
 
 # ---------------------------------------------------------------------------
 # Wake word & media-control configuration
@@ -184,6 +185,11 @@ async def run_wake_word_loop():
             # --- Wake word heard ---
             print("\n🔔 Wake word detected!")
 
+            # ── ALEXA-STYLE: mute speakers so music doesn't bleed into the mic ──
+            was_muted = audio_control.is_muted()
+            audio_control.mute_system()
+            print("🔇 System muted for recording...")
+
             # Listen for the actual command phrase (short timeout)
             print("⚡ Quick-listening for command...")
             try:
@@ -192,12 +198,19 @@ async def run_wake_word_loop():
                 print(f"🗣️  Command heard: '{cmd_text}'")
             except (sr.WaitTimeoutError, sr.UnknownValueError):
                 # Nothing said — treat as general "wake" → greet and full cycle
+                audio_control.unmute_system()
+                print("🔊 System unmuted.")
                 await scarlet_core.main()
                 print("\n👂 Back to standby...\n")
                 continue
             except sr.RequestError as e:
                 print(f"⚠️  Speech API error: {e}")
+                audio_control.unmute_system()
                 continue
+
+            # ── Unmute BEFORE playing Scarlet's spoken response ──
+            audio_control.unmute_system()
+            print("🔊 System unmuted.")
 
             # --- Check if it's a media control command ---
             media_cmd = detect_media_command(cmd_text)

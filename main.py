@@ -134,25 +134,25 @@ def detect_media_command(text: str):
 # ---------------------------------------------------------------------------
 # Wake word listener
 # ---------------------------------------------------------------------------
-def listen_for_wake_word(recognizer: sr.Recognizer, source: sr.AudioSource) -> bool:
-    """Returns True if the wake word is detected."""
+def listen_for_wake_word(recognizer: sr.Recognizer, source: sr.AudioSource) -> tuple:
+    """Returns (True, transcribed_text) if the wake word is detected."""
     try:
-        audio = recognizer.listen(source, timeout=5, phrase_time_limit=4)
+        audio = recognizer.listen(source, timeout=5, phrase_time_limit=8)
         text = recognizer.recognize_google(audio, language="es-ES").lower()
         print(f"   [Heard]: '{text}'", end="\r")
 
         for variant in WAKE_VARIANTS:
             if variant in text:
-                return True
-        return False
+                return True, text
+        return False, ""
 
     except sr.WaitTimeoutError:
-        return False
+        return False, ""
     except sr.UnknownValueError:
-        return False
+        return False, ""
     except sr.RequestError as e:
         print(f"\n⚠️  Speech API error: {e}")
-        return False
+        return False, ""
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ async def run_wake_word_loop():
         print("✅ Ready! Waiting for wake word...\n")
 
         while True:                                  # ← cyclic loop
-            detected = listen_for_wake_word(recognizer, source)
+            detected, heard_text = listen_for_wake_word(recognizer, source)
 
             if not detected:
                 continue
@@ -192,23 +192,36 @@ async def run_wake_word_loop():
             audio_control.mute_system()
             print("🔉 Audio ducked (browsers lowered to 10%)...")
 
-            # Listen for the actual command phrase (short timeout)
-            print("⚡ Quick-listening for command...")
-            try:
-                cmd_audio = recognizer.listen(source, timeout=4, phrase_time_limit=8)
-                cmd_text  = recognizer.recognize_google(cmd_audio, language="es-ES")
-                print(f"🗣️  Command heard: '{cmd_text}'")
-            except (sr.WaitTimeoutError, sr.UnknownValueError):
-                # Nothing said — treat as general "wake" → greet and full cycle
-                await scarlet_core.main()
-                audio_control.unmute_system()
-                print("🔊 Volume restored.")
-                print("\n👂 Back to standby...\n")
-                continue
-            except sr.RequestError as e:
-                print(f"⚠️  Speech API error: {e}")
-                audio_control.unmute_system()
-                continue
+            # Extract the remainder of the sentence after the wake word
+            remainder = ""
+            for variant in WAKE_VARIANTS:
+                idx = heard_text.find(variant)
+                if idx != -1:
+                    remainder = heard_text[idx + len(variant):].strip()
+                    break
+
+            if remainder:
+                # The user spoke the command in one breath!
+                cmd_text = remainder
+                print(f"🗣️  One-breath command: '{cmd_text}'")
+            else:
+                # Listen for the actual command phrase (short timeout)
+                print("⚡ Quick-listening for command...")
+                try:
+                    cmd_audio = recognizer.listen(source, timeout=4, phrase_time_limit=8)
+                    cmd_text  = recognizer.recognize_google(cmd_audio, language="es-ES")
+                    print(f"🗣️  Command heard: '{cmd_text}'")
+                except (sr.WaitTimeoutError, sr.UnknownValueError):
+                    # Nothing said — treat as general "wake" → greet and full cycle
+                    await scarlet_core.main()
+                    audio_control.unmute_system()
+                    print("🔊 Volume restored.")
+                    print("\n👂 Back to standby...\n")
+                    continue
+                except sr.RequestError as e:
+                    print(f"⚠️  Speech API error: {e}")
+                    audio_control.unmute_system()
+                    continue
 
             # --- Check if it's a media control command ---
             media_cmd = detect_media_command(cmd_text)

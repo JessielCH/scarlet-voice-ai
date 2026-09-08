@@ -135,9 +135,11 @@ def keyword_intent_fallback(text: str):
 def record_audio(filename="temp_audio.wav"):
     """Records audio from the microphone and saves it to a file."""
     recognizer = sr.Recognizer()
+    recognizer.pause_threshold = 0.4
+    recognizer.non_speaking_duration = 0.3
     with sr.Microphone() as source:
         print("\n🎤 Adjusting for ambient noise...")
-        recognizer.adjust_for_ambient_noise(source, duration=1)
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
         print("🟢 Listening... Speak now!")
         try:
             audio = recognizer.listen(source, timeout=7, phrase_time_limit=12)

@@ -162,7 +162,9 @@ async def run_wake_word_loop():
     recognizer = sr.Recognizer()
     recognizer.energy_threshold      = 300
     recognizer.dynamic_energy_threshold = True
-    recognizer.pause_threshold       = 0.6
+    recognizer.pause_threshold       = 0.4  # Reducido para detectar el final rápido
+    recognizer.non_speaking_duration = 0.3  # Reducido para cortar rápido
+
 
     print("\n" + "=" * 52)
     print("🎙️  SCARLET — ALWAYS LISTENING MODE")

@@ -183,7 +183,7 @@ def generate_response(prompt):
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
-            model="llama-3.1-8b-instant",
+            model="groq/compound-mini",
             temperature=0.5,
             max_tokens=200,
         )

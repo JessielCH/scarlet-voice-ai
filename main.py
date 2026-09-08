@@ -185,10 +185,10 @@ async def run_wake_word_loop():
             # --- Wake word heard ---
             print("\n🔔 Wake word detected!")
 
-            # ── ALEXA-STYLE: mute speakers so music doesn't bleed into the mic ──
+            # ── ALEXA-STYLE: duck speakers so music doesn't bleed into the mic ──
             was_muted = audio_control.is_muted()
             audio_control.mute_system()
-            print("🔇 System muted for recording...")
+            print("🔉 Audio ducked (browsers lowered to 10%)...")
 
             # Listen for the actual command phrase (short timeout)
             print("⚡ Quick-listening for command...")
@@ -198,9 +198,9 @@ async def run_wake_word_loop():
                 print(f"🗣️  Command heard: '{cmd_text}'")
             except (sr.WaitTimeoutError, sr.UnknownValueError):
                 # Nothing said — treat as general "wake" → greet and full cycle
-                audio_control.unmute_system()
-                print("🔊 System unmuted.")
                 await scarlet_core.main()
+                audio_control.unmute_system()
+                print("🔊 Volume restored.")
                 print("\n👂 Back to standby...\n")
                 continue
             except sr.RequestError as e:
@@ -208,19 +208,19 @@ async def run_wake_word_loop():
                 audio_control.unmute_system()
                 continue
 
-            # ── Unmute BEFORE playing Scarlet's spoken response ──
-            audio_control.unmute_system()
-            print("🔊 System unmuted.")
-
             # --- Check if it's a media control command ---
             media_cmd = detect_media_command(cmd_text)
             if media_cmd:
                 await handle_media_command(media_cmd)
+                audio_control.unmute_system()
+                print("🔊 Volume restored.")
                 print("\n👂 Back to standby...\n")
                 continue
 
             # --- Otherwise: full AI interaction with the transcribed command ---
             await scarlet_core.process_command(cmd_text)
+            audio_control.unmute_system()
+            print("🔊 Volume restored.")
             print("\n👂 Back to standby...\n")
 
 

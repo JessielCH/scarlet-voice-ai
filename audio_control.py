@@ -1,38 +1,56 @@
 """
 audio_control.py
 ─────────────────
-System-level audio mute/unmute using the Windows Core Audio API (pycaw).
-This is used to silence the speakers BEFORE recording the user's voice command,
-so background music doesn't bleed into the microphone — exactly like Alexa does.
+Audio ducking using the Windows Core Audio API (pycaw).
+Lowers the volume of browsers (YouTube, etc.) to 10% when Scarlet listens
+and speaks, instead of muting the whole system. This prevents stuttering
+and audio overlaps.
 """
 from pycaw.utils import AudioUtilities
+from pycaw.api.audioclient import ISimpleAudioVolume
 
+BROWSER_PROCESSES = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe"]
 
-def _get_volume():
-    """Returns the Windows endpoint volume controller."""
-    speakers = AudioUtilities.GetSpeakers()
-    return speakers.EndpointVolume
-
+def get_browser_sessions():
+    """Yields pycaw audio sessions that belong to known browsers."""
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        if session.Process and session.Process.name() in BROWSER_PROCESSES:
+            yield session
 
 def mute_system():
-    """Silences the system audio output."""
+    """
+    Actually 'ducks' the audio: lowers browser volumes to 10% 
+    instead of fully muting the system.
+    """
     try:
-        _get_volume().SetMute(1, None)
+        for session in get_browser_sessions():
+            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+            # Store the current volume to a custom attribute if not stored yet
+            if not hasattr(session, "original_volume"):
+                session.original_volume = volume.GetMasterVolume()
+            # Set to 10% so the user can still hear it faintly in the background
+            volume.SetMasterVolume(0.1, None)
     except Exception as e:
-        print(f"⚠️  Could not mute system audio: {e}")
-
+        print(f"⚠️  Could not duck audio: {e}")
 
 def unmute_system():
-    """Restores the system audio output."""
+    """Restores the browser volumes back to 100%."""
     try:
-        _get_volume().SetMute(0, None)
+        for session in get_browser_sessions():
+            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+            # Restore to 100%
+            volume.SetMasterVolume(1.0, None)
     except Exception as e:
-        print(f"⚠️  Could not unmute system audio: {e}")
-
+        print(f"⚠️  Could not restore audio: {e}")
 
 def is_muted() -> bool:
-    """Returns True if the system audio is currently muted."""
+    """Returns True if any browser is currently ducked to 10%."""
     try:
-        return bool(_get_volume().GetMute())
+        for session in get_browser_sessions():
+            volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+            if volume.GetMasterVolume() <= 0.15: # roughly 10%
+                return True
+        return False
     except Exception:
         return False

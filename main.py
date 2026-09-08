@@ -219,6 +219,16 @@ async def run_wake_word_loop():
                 print("\n👂 Back to standby...\n")
                 continue
 
+            # --- Check if the user just said the wake word and nothing else ---
+            clean_cmd = ''.join(c for c in cmd_text.lower() if c.isalnum() or c.isspace()).strip()
+            if clean_cmd in WAKE_VARIANTS or clean_cmd in ["hola", "hola scarlet", "oye scarlet", "hola scarlett", "oye scarlett", "scarlet", "scarlett"]:
+                # The user just called Scarlet's name, so enter the interactive loop
+                await scarlet_core.main()
+                audio_control.unmute_system()
+                print("🔊 Volume restored.")
+                print("\n👂 Back to standby...\n")
+                continue
+
             # --- Otherwise: full AI interaction with the transcribed command ---
             await scarlet_core.process_command(cmd_text)
             audio_control.unmute_system()

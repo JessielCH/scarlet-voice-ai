@@ -275,7 +275,7 @@ def execute_action(action: dict):
 async def text_to_speech(text, output_file="response.mp3"):
     """Converts text to speech using Edge TTS with a friendlier voice and speed."""
     try:
-        communicate = edge_tts.Communicate(text, "es-ES-ElviraNeural", rate="+8%")
+        communicate = edge_tts.Communicate(text, "es-CO-SalomeNeural", rate="+5%")
         await communicate.save(output_file)
         return output_file
     except Exception as e:
